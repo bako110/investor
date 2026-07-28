@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Biliwinx · GoFolyX — Attestation d'apport</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --accent:#5B4FE0;
+    --accent-dark:#463DB8;
+    --ink:#1A1A1A;
+    --grey:#636363;
+    --bg-beige:#F2EFE8;
+    --border:#D8D5CC;
+    --page-bg:#EDEBF9;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    background:var(--page-bg);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .app{
+    width:100%;
+    max-width:760px;
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:4px;
+  }
+  .brand-name{
+    font-weight:800;
+    letter-spacing:1px;
+    color:var(--accent);
+    font-size:14px;
+  }
+  .brand-sub{
+    color:var(--grey);
+    font-size:12px;
+    font-style:italic;
+  }
+  h1{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:28px;
+    margin:6px 0 2px 0;
+    line-height:1.1;
+  }
+  h1 .accent{color:var(--accent);}
+  .subtitle{
+    color:var(--grey);
+    font-size:13.5px;
+    margin:0 0 22px 0;
+  }
+  .card{
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(70,61,184,0.10), 0 1px 3px rgba(0,0,0,0.05);
+    overflow:hidden;
+  }
+  .steps-bar{
+    display:flex;
+    background:var(--bg-beige);
+    border-bottom:1px solid var(--border);
+    overflow-x:auto;
+  }
+  .step-tab{
+    flex:1;
+    min-width:78px;
+    text-align:center;
+    padding:12px 6px 10px;
+    font-size:11px;
+    font-weight:700;
+    color:#A8A29A;
+    border-bottom:3px solid transparent;
+    cursor:default;
+    white-space:nowrap;
+  }
+  .step-tab .num{
+    display:block;
+    font-size:14px;
+    margin-bottom:2px;
+  }
+  .step-tab.active{
+    color:var(--accent-dark);
+    border-bottom-color:var(--accent);
+  }
+  .step-tab.done{
+    color:#8b8577;
+  }
+  .step-panel{
+    padding:28px 30px 20px;
+    display:none;
+  }
+  .step-panel.active{display:block;}
+  .step-title{
+    font-size:11px;
+    font-weight:800;
+    color:var(--accent);
+    letter-spacing:0.5px;
+    margin:0 0 2px 0;
+  }
+  .step-desc{
+    font-size:13px;
+    color:var(--grey);
+    margin:0 0 20px 0;
+  }
+  .grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 18px;
+  }
+  .field{margin-bottom:14px;}
+  .field.full{grid-column:1 / -1;}
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:700;
+    color:#3a3a3a;
+    margin-bottom:5px;
+  }
+  label .hint{
+    font-weight:400;
+    color:#a0a0a0;
+    font-size:11px;
+  }
+  input[type=text], input[type=tel], input[type=email], input[type=date], select{
+    width:100%;
+    padding:9px 11px;
+    border:1.5px solid #E2E0EA;
+    border-radius:8px;
+    font-size:13.5px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#FBFAFD;
+    transition:border-color .15s;
+  }
+  input:focus, select:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:#fff;
+  }
+  .section-label{
+    font-size:11px;
+    font-weight:800;
+    color:var(--accent-dark);
+    background:var(--bg-beige);
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:6px;
+    margin:18px 0 12px 0;
+  }
+  .section-label:first-child{margin-top:0;}
+  .actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 30px 26px;
+    border-top:1px solid #EFEDE7;
+  }
+  button{
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:700;
+    border:none;
+    border-radius:9px;
+    padding:11px 20px;
+    cursor:pointer;
+    transition:transform .1s, box-shadow .15s;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{
+    background:var(--accent);
+    color:#fff;
+    box-shadow:0 4px 14px rgba(91,79,224,0.35);
+  }
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-ghost{
+    background:transparent;
+    color:var(--grey);
+  }
+  .btn-ghost:hover{color:var(--ink);}
+  .btn-ghost:disabled{opacity:0.35; cursor:default;}
+  .recap{
+    background:#FAFAFC;
+    border:1px solid #EDEBF5;
+    border-radius:10px;
+    padding:16px 18px;
+    font-size:13px;
+    line-height:1.9;
+  }
+  .recap b{color:var(--ink);}
+  .recap .grp{
+    font-weight:800;
+    color:var(--accent-dark);
+    font-size:11.5px;
+    letter-spacing:.4px;
+    margin-top:12px;
+    display:block;
+  }
+  .recap .grp:first-child{margin-top:0;}
+  .final-note{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    background:#F1F0FB;
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:12.5px;
+    color:#4b4870;
+    margin-top:16px;
+  }
+  .checkbox-row{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    padding:9px 0 2px;
+  }
+  .checkbox-row label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-weight:600;
+    font-size:13px;
+    color:var(--ink);
+    margin:0;
+    cursor:pointer;
+  }
+  .checkbox-row input{width:16px;height:16px;accent-color:var(--accent);}
+  .success{
+    text-align:center;
+    padding:10px 0 6px;
+  }
+  .success .check{
+    width:52px;height:52px;border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;
+    margin:0 auto 14px;
+  }
+  @media (max-width:600px){
+    .grid2{grid-template-columns:1fr;}
+    .step-panel{padding:22px 18px 16px;}
+    .actions{padding:16px 18px 22px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="brand">
+    <span class="brand-name">BILIWINX</span>
+    <span class="brand-sub">Application GoFolyX</span>
+  </div>
+  <h1>Attestation d'apport <span class="accent">d'investissement</span></h1>
+  <p class="subtitle">Renseignez les informations étape par étape, puis téléchargez le PDF au design officiel.</p>
+
+  <div class="card">
+    <div class="steps-bar" id="stepsBar"></div>
+
+    <!-- STEP 1 -->
+    <div class="step-panel" data-step="0">
+      <p class="step-title">ÉTAPE 1 / 6</p>
+      <p class="step-desc">Identification des deux parties — Biliwinx (pré-rempli, modifiable) et l'investisseur.</p>
+
+      <span class="section-label">Société bénéficiaire</span>
+      <div class="grid2">
+        <div class="field"><label>Représenté par</label><input type="text" id="repNom"></div>
+        <div class="field"><label>En qualité de</label><input type="text" id="repQualite"></div>
+      </div>
+
+      <span class="section-label">Investisseur / apporteur</span>
+      <div class="grid2">
+        <div class="field"><label>Nom / Raison sociale</label><input type="text" id="invNom" placeholder="Ex : Abdoul Rachid Derra"></div>
+        <div class="field"><label>Adresse / Contact</label><input type="text" id="invAdresse" placeholder="Ex : Ouagadougou"></div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-panel" data-step="1">
+      <p class="step-title">ÉTAPE 2 / 6</p>
+      <p class="step-desc">Informations d'identification complémentaires, pour chaque partie.</p>
+
+      <span class="section-label">Représentant — Biliwinx</span>
+      <div class="grid2">
+        <div class="field"><label>Nom</label><input type="text" id="repNomFamille"></div>
+        <div class="field"><label>Prénom(s)</label><input type="text" id="repPrenom"></div>
+        <div class="field"><label>Lieu de naissance</label><input type="text" id="repLieuNaissance"></div>
+        <div class="field"><label>Nationalité</label><input type="text" id="repNationalite"></div>
+        <div class="field"><label>Type de pièce</label>
+          <select id="repPieceType"><option value="CNIB">CNIB</option><option value="Passeport">Passeport</option><option value="Autre">Autre</option></select>
+        </div>
+        <div class="field"><label>Numéro de pièce</label><input type="text" id="repPieceNum"></div>
+        <div class="field"><label>Date & lieu de délivrance</label><input type="text" id="repPieceDate"></div>
+        <div class="field"><label>Téléphone</label><input type="tel" id="repTel"></div>
+        <div class="field"><label>E-mail</label><input type="email" id="repEmail"></div>
+        <div class="field"><label>Adresse de résidence</label><input type="text" id="repAdresse"></div>
+      </div>
+
+      <span class="section-label">Investisseur</span>
+      <div class="grid2">
+        <div class="field"><label>Nom</label><input type="text" id="invNomFamille"></div>
+        <div class="field"><label>Prénom(s)</label><input type="text" id="invPrenom"></div>
+        <div class="field"><label>Lieu de naissance</label><input type="text" id="invLieuNaissance"></div>
+        <div class="field"><label>Nationalité</label><input type="text" id="invNationalite" value="Burkina Faso"></div>
+        <div class="field"><label>Type de pièce</label>
+          <select id="invPieceType"><option value="CNIB">CNIB</option><option value="Passeport">Passeport</option><option value="Autre">Autre</option></select>
+        </div>
+        <div class="field"><label>Numéro de pièce</label><input type="text" id="invPieceNum"></div>
+        <div class="field"><label>Date & lieu de délivrance</label><input type="text" id="invPieceDate"></div>
+        <div class="field"><label>Téléphone</label><input type="tel" id="invTel"></div>
+        <div class="field"><label>E-mail</label><input type="email" id="invEmail"></div>
+        <div class="field"><label>Adresse de résidence</label><input type="text" id="invAdresseRes"></div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-panel" data-step="2">
+      <p class="step-title">ÉTAPE 3 / 6</p>
+      <p class="step-desc">Contact d'urgence pour chaque partie, en cas d'impossibilité de joindre l'une d'elles.</p>
+
+      <span class="section-label">Urgence — Biliwinx</span>
+      <div class="grid2">
+        <div class="field"><label>Nom complet</label><input type="text" id="repUrgenceNom"></div>
+        <div class="field"><label>Lien avec la partie</label><input type="text" id="repUrgenceLien"></div>
+        <div class="field full"><label>Téléphone</label><input type="tel" id="repUrgenceTel"></div>
+      </div>
+
+      <span class="section-label">Urgence — Investisseur</span>
+      <div class="grid2">
+        <div class="field"><label>Nom complet</label><input type="text" id="invUrgenceNom"></div>
+        <div class="field"><label>Lien avec la partie</label><input type="text" id="invUrgenceLien" placeholder="Ex : Frère, mère, conjoint…"></div>
+        <div class="field full"><label>Téléphone</label><input type="tel" id="invUrgenceTel"></div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-panel" data-step="3">
+      <p class="step-title">ÉTAPE 4 / 6</p>
+      <p class="step-desc">Détail de l'apport financier réalisé par l'investisseur.</p>
+      <div class="grid2">
+        <div class="field"><label>Montant de l'apport <span class="hint">(FCFA)</span></label><input type="text" id="montant" placeholder="Ex : 50000"></div>
+        <div class="field"><label>Date de versement</label><input type="date" id="dateVersement"></div>
+        <div class="field full">
+          <label>Moyen de paiement</label>
+          <div class="checkbox-row">
+            <label><input type="radio" name="moyen" value="Virement bancaire"> Virement bancaire</label>
+            <label><input type="radio" name="moyen" value="Mobile Money"> Mobile Money</label>
+            <label><input type="radio" name="moyen" value="Autre"> Autre</label>
+          </div>
+        </div>
+        <div class="field full"><label>Référence / justificatif</label><input type="text" id="reference"></div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-panel" data-step="4">
+      <p class="step-title">ÉTAPE 5 / 6</p>
+      <p class="step-desc">Signatures — qualité et lieu/date pour chaque partie.</p>
+
+      <span class="section-label">Pour Biliwinx</span>
+      <div class="grid2">
+        <div class="field"><label>Qualité</label><input type="text" id="repQualiteSign"></div>
+        <div class="field"><label>Lieu / Date</label><input type="text" id="repLieuDate"></div>
+      </div>
+
+      <span class="section-label">Pour l'investisseur</span>
+      <div class="grid2">
+        <div class="field"><label>Qualité</label><input type="text" id="invQualite" placeholder="Investisseur"></div>
+        <div class="field"><label>Lieu / Date</label><input type="text" id="invLieuDate"></div>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step-panel" data-step="5">
+      <p class="step-title">ÉTAPE 6 / 6</p>
+      <p class="step-desc">Vérifiez le récapitulatif, puis générez le PDF final.</p>
+      <div class="recap" id="recapBox"></div>
+      <div class="final-note">📄 Le PDF généré reprend exactement la charte graphique de l'attestation officielle Biliwinx (indigo #5B4FE0, en-têtes beiges, mise en page identique).</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-ghost" id="btnBack" disabled>← Retour</button>
+      <button class="btn-primary" id="btnNext">Continuer →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------- STEP NAV ----------------
+const stepLabels = ["Parties","Identité","Urgence","Apport","Signatures","Récap"];
+const steps = document.querySelectorAll('.step-panel');
+const stepsBar = document.getElementById('stepsBar');
+let current = 0;
+
+stepLabels.forEach((label,i)=>{
+  const tab = document.createElement('div');
+  tab.className = 'step-tab' + (i===0?' active':'');
+  tab.innerHTML = `<span class="num">${i+1}</span>${label}`;
+  stepsBar.appendChild(tab);
+});
+const tabs = stepsBar.querySelectorAll('.step-tab');
+
+function showStep(i){
+  steps.forEach(s=>s.classList.toggle('active', +s.dataset.step===i));
+  tabs.forEach((t,idx)=>{
+    t.classList.toggle('active', idx===i);
+    t.classList.toggle('done', idx<i);
+  });
+  document.getElementById('btnBack').disabled = i===0;
+  document.getElementById('btnNext').textContent = i===steps.length-1 ? 'Télécharger le PDF' : 'Continuer →';
+  if(i===steps.length-1) buildRecap();
+  current = i;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('btnNext').addEventListener('click', ()=>{
+  if(current === steps.length-1){
+    generatePDF();
+  } else {
+    showStep(current+1);
+  }
+});
+document.getElementById('btnBack').addEventListener('click', ()=> showStep(Math.max(0,current-1)));
+
+// ---------------- DEFAULTS (Biliwinx side, editable) ----------------
+const defaults = {
+  repNom:'Robert Bako', repQualite:'Fondateur et Directeur Général', repQualiteSign:'Fondateur et Directeur Général',
+  repNomFamille:'Bako', repPrenom:'Robert', repNationalite:'Burkina Faso',
+  repPieceNum:'B12001845', repTel:'57443692', repEmail:'gofolyx@gofolyx.com', repAdresse:'Secteur 42/Ouaga',
+  repUrgenceNom:'Bako Robert', repUrgenceTel:'+226 57443692',
+};
+Object.keys(defaults).forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.value = defaults[id];
+});
+// today's date for signature fields
+const todayStr = new Date().toLocaleDateString('fr-FR');
+document.getElementById('repLieuDate').value = 'Ouagadougou, ' + todayStr;
+
+function val(id){ return (document.getElementById(id)?.value || '').trim(); }
+
+function buildRecap(){
+  const moyen = document.querySelector('input[name=moyen]:checked');
+  document.getElementById('recapBox').innerHTML = `
+    <span class="grp">Parties</span>
+    <b>Biliwinx</b> — ${val('repNom')}, ${val('repQualite')}<br>
+    <b>Investisseur</b> — ${val('invNom') || '<i>non renseigné</i>'}, ${val('invAdresse')}
+    <span class="grp">Apport</span>
+    Montant : <b>${val('montant') || '—'} FCFA</b> · Date : <b>${val('dateVersement') || '—'}</b> · Moyen : <b>${moyen ? moyen.value : '—'}</b>
+    <span class="grp">Contact d'urgence investisseur</span>
+    ${val('invUrgenceNom') || '—'} (${val('invUrgenceLien') || '—'})
+  `;
+}
+
+// ---------------- PDF GENERATION (design v2) ----------------
+const ACCENT = [91, 79, 224];
+const ACCENT_DARK = [70, 61, 184];
+const NEARBLACK = [26, 26, 26];
+const DARKGREY = [99, 99, 99];
+const LABEL_GREY = [140, 133, 120];
+const RULE_GREY = [225, 220, 208];
+const PILL_BG = [242, 239, 232];
+
+const PAGE_W = 210, PAGE_H = 297, MARGIN = 16, CONTENT_W = PAGE_W - MARGIN * 2;
+
+function makePDF(data){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  let y = MARGIN, page = 1;
+
+  function drawHeader() {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...DARKGREY);
+    doc.text('BILIWINX', MARGIN, 12);
+    doc.setFont('helvetica', 'italic');
+    doc.text('DOCUMENT CONFIDENTIEL', PAGE_W - MARGIN, 12, { align: 'right' });
+    doc.setDrawColor(...RULE_GREY); doc.setLineWidth(0.2);
+    doc.line(MARGIN, 15, PAGE_W - MARGIN, 15);
+  }
+  function drawFooter() {
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(7.2); doc.setTextColor(...DARKGREY);
+    doc.text("Biliwinx — GoFolyX · Attestation d'apport d'investissement", PAGE_W / 2, PAGE_H - 10, { align: 'center' });
+    doc.text('Page ' + page, PAGE_W - MARGIN, PAGE_H - 10, { align: 'right' });
+  }
+  function newPage() { drawFooter(); doc.addPage(); page++; y = MARGIN + 10; drawHeader(); }
+  function ensureSpace(h) { if (y + h > PAGE_H - MARGIN - 10) newPage(); }
+
+  function sectionTitle(num, title) {
+    ensureSpace(13); y += 5;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(...ACCENT);
+    doc.text(num + '  ', MARGIN, y);
+    const numW = doc.getTextWidth(num + '  ');
+    doc.setTextColor(...NEARBLACK);
+    doc.text(title, MARGIN + numW, y);
+    y += 2;
+    doc.setDrawColor(...ACCENT); doc.setLineWidth(0.5);
+    doc.line(MARGIN, y, MARGIN + 26, y);
+    doc.setDrawColor(...RULE_GREY); doc.setLineWidth(0.25);
+    doc.line(MARGIN + 26, y, PAGE_W - MARGIN, y);
+    y += 7;
+  }
+
+  function pill(text, x, yy) {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.8);
+    const padX = 2.6, h = 5.4;
+    const w = doc.getTextWidth(text) + padX * 2;
+    doc.setFillColor(...PILL_BG);
+    doc.roundedRect(x, yy - 4, w, h, 1.3, 1.3, 'F');
+    doc.setTextColor(...ACCENT_DARK);
+    doc.text(text, x + padX, yy);
+    return w;
+  }
+
+  function wrapText(text, maxWidth, fontSize, italic) {
+    doc.setFont('helvetica', italic ? 'italic' : 'normal'); doc.setFontSize(fontSize);
+    return doc.splitTextToSize(text, maxWidth);
+  }
+
+  function paragraph(text, opts = {}) {
+    const { italic = false, size = 9.5, color = NEARBLACK, before = 0, after = 3 } = opts;
+    y += before;
+    const lines = wrapText(text, CONTENT_W, size, italic);
+    ensureSpace(lines.length * (size * 0.42) + 2);
+    doc.setTextColor(...color);
+    lines.forEach(line => { doc.text(line, MARGIN, y); y += size * 0.42; });
+    y += after;
+  }
+
+  // stacked label/value, returns new y
+  function labelValue(x, yy, label, value, opts = {}) {
+    const { valueSize = 10 } = opts;
+    if (label) {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7.3); doc.setTextColor(...LABEL_GREY);
+      doc.text(label.toUpperCase(), x, yy);
+      yy += 4.3;
+    }
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(valueSize); doc.setTextColor(...NEARBLACK);
+    const text = value && value.trim() ? value : '—';
+    doc.text(text, x, yy);
+    yy += valueSize === 10 ? 6.6 : 7.6;
+    return yy;
+  }
+
+  // two-column block: pill headers + stacked fields, hairline divider + bottom rule
+  function twoColStack(leftLabel, rightLabel, leftFields, rightFields, opts = {}) {
+    const estH = 10 + Math.max(leftFields.length, rightFields.length) * 7.2 + 6;
+    ensureSpace(estH);
+    const colW = CONTENT_W / 2;
+    const top = y;
+    if (leftLabel) pill(leftLabel, MARGIN, y);
+    if (rightLabel) pill(rightLabel, MARGIN + colW, y);
+    y += (leftLabel || rightLabel) ? 9 : 2;
+    const fieldsTop = y;
+    let ly = y, ry = y;
+    leftFields.forEach(f => { ly = labelValue(MARGIN, ly, f.label, f.value, opts); });
+    rightFields.forEach(f => { ry = labelValue(MARGIN + colW, ry, f.label, f.value, opts); });
+    y = Math.max(ly, ry) + 2;
+    doc.setDrawColor(...RULE_GREY); doc.setLineWidth(0.2);
+    doc.line(MARGIN + colW - 5, fieldsTop - 4, MARGIN + colW - 5, y - 3);
+    doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+    y += 7;
+  }
+
+  function clause(num, title, body) {
+    const badgeR = 3.3;
+    const lines = wrapText(body, CONTENT_W - (badgeR * 2 + 4), 9, false);
+    const blockH = 6 + lines.length * 3.8 + 6;
+    ensureSpace(blockH);
+    doc.setFillColor(...ACCENT);
+    doc.circle(MARGIN + badgeR, y - 1, badgeR, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(255, 255, 255);
+    doc.text(num, MARGIN + badgeR, y + 0.3, { align: 'center' });
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.8); doc.setTextColor(...NEARBLACK);
+    doc.text(title, MARGIN + badgeR * 2 + 4, y);
+    y += 5.2;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+    lines.forEach(line => { doc.text(line, MARGIN + badgeR * 2 + 4, y); y += 3.8; });
+    y += 4;
+    doc.setDrawColor(...RULE_GREY); doc.setLineWidth(0.2);
+    doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+    y += 6;
+  }
+
+  function signatureBoxes(leftName, rightName) {
+    ensureSpace(46);
+    const boxW = CONTENT_W / 2 - 5;
+    const boxH = 26;
+    const top = y;
+    [ [MARGIN, leftName], [MARGIN + CONTENT_W/2 + 5, rightName] ].forEach(([x, label]) => {
+      doc.setDrawColor(210, 205, 195); doc.setLineWidth(0.3);
+      doc.roundedRect(x, top, boxW, boxH, 1.5, 1.5);
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(...LABEL_GREY);
+      doc.text('Signature & cachet', x + 3, top + 5.5);
+      doc.setDrawColor(...RULE_GREY); doc.setLineWidth(0.15);
+      doc.line(x + 3, top + boxH - 6, x + boxW - 3, top + boxH - 6);
+      doc.setFontSize(6.8);
+      doc.text(label, x + 3, top + boxH - 2.3);
+    });
+    y = top + boxH + 6;
+  }
+
+  // ---- BUILD ----
+  drawHeader(); y = MARGIN + 15;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...ACCENT);
+  doc.text('BILIWINX · APPLICATION GOFOLYX', MARGIN, y); y += 9;
+  doc.setFont('times', 'bold'); doc.setFontSize(22); doc.setTextColor(...NEARBLACK);
+  doc.text("ATTESTATION D'APPORT", MARGIN, y); y += 9.5;
+  doc.setTextColor(...ACCENT); doc.text("D'INVESTISSEMENT", MARGIN, y); y += 3;
+  doc.setDrawColor(...ACCENT); doc.setLineWidth(0.7); doc.line(MARGIN, y, MARGIN + 46, y);
+  y += 7.5;
+
+  paragraph(
+    "Ce document atteste la réception d'un apport financier destiné au développement du projet GoFolyX, porté par la société Biliwinx. Il ne confère, à lui seul, aucune détention d'action, de part sociale ou de droit de vote. La valorisation de la société et les modalités de conversion éventuelle de cet apport seront déterminées ultérieurement, sur la base d'une évaluation formelle du projet, et feront l'objet d'un accord distinct entre les parties.",
+    { italic: true, size: 9, color: DARKGREY, after: 5 }
+  );
+
+  sectionTitle('01', 'IDENTIFICATION DES PARTIES');
+  twoColStack('SOCIÉTÉ BÉNÉFICIAIRE', 'INVESTISSEUR / APPORTEUR',
+    [
+      { label: '', value: 'Biliwinx — Projet GoFolyX' },
+      { label: 'Représenté par', value: data.repNom },
+      { label: 'En qualité de', value: data.repQualite },
+    ],
+    [
+      { label: 'Nom / raison sociale', value: data.invNom },
+      { label: 'Adresse / contact', value: data.invAdresse },
+    ]
+  );
+
+  sectionTitle('02', "INFORMATIONS D'IDENTIFICATION COMPLÉMENTAIRES");
+  paragraph("À renseigner pour chaque partie, à titre de justificatif d'identité en cas de besoin (due diligence, litige, ou demande d'une autorité compétente).", { size: 8.5, color: DARKGREY, after: 4 });
+  twoColStack('REPRÉSENTANT — BILIWINX', 'INVESTISSEUR',
+    [
+      { label: 'Nom', value: data.repNomFamille },
+      { label: 'Prénom(s)', value: data.repPrenom },
+      { label: 'Nationalité', value: data.repNationalite },
+      { label: "Pièce d'identité", value: `${data.repPieceType || ''} ${data.repPieceNum || ''}`.trim() },
+      { label: 'Téléphone', value: data.repTel },
+      { label: 'E-mail', value: data.repEmail },
+      { label: 'Adresse de résidence', value: data.repAdresse },
+    ],
+    [
+      { label: 'Nom', value: data.invNomFamille },
+      { label: 'Prénom(s)', value: data.invPrenom },
+      { label: 'Nationalité', value: data.invNationalite },
+      { label: "Pièce d'identité", value: `${data.invPieceType || ''} ${data.invPieceNum || ''}`.trim() },
+      { label: 'Téléphone', value: data.invTel },
+      { label: 'E-mail', value: data.invEmail },
+      { label: 'Adresse de résidence', value: data.invAdresseRes },
+    ],
+    { valueSize: 9.5 }
+  );
+
+  sectionTitle("03", "CONTACT D'URGENCE");
+  paragraph("Personne à contacter en cas d'impossibilité de joindre l'une des parties.", { size: 8.5, color: DARKGREY, after: 4 });
+  twoColStack('BILIWINX', 'INVESTISSEUR',
+    [
+      { label: 'Nom complet', value: data.repUrgenceNom },
+      { label: 'Lien avec la partie', value: data.repUrgenceLien },
+      { label: 'Téléphone', value: data.repUrgenceTel },
+    ],
+    [
+      { label: 'Nom complet', value: data.invUrgenceNom },
+      { label: 'Lien avec la partie', value: data.invUrgenceLien },
+      { label: 'Téléphone', value: data.invUrgenceTel },
+    ]
+  );
+
+  sectionTitle('04', "DÉTAIL DE L'APPORT");
+  twoColStack('', '',
+    [{ label: "Montant de l'apport", value: (data.montant ? data.montant + ' FCFA' : '—') }],
+    [{ label: 'Date de versement', value: data.dateVersement }],
+    { valueSize: 13 }
+  );
+  twoColStack('', '',
+    [{ label: 'Moyen de paiement', value: data.moyenPaiement }],
+    [{ label: 'Référence / justificatif', value: data.reference }]
+  );
+
+  sectionTitle('05', 'TERMES & CONDITIONS');
+  clause('1', "Nature de l'apport", "Le présent versement constitue un apport financier destiné au financement du développement et de l'exploitation du projet GoFolyX. Il n'a pas la nature d'un prêt et ne porte pas intérêt, sauf accord contraire signé séparément par les parties.");
+  clause('2', "Absence de détention d'action", "Le présent document ne confère à l'apporteur aucune part sociale, action, droit de vote ou droit de gouvernance au sein de Biliwinx. Aucune conversion en capital n'est automatique ni garantie du seul fait de cet apport.");
+  clause('3', 'Valorisation à déterminer', "La valorisation de Biliwinx et du projet GoFolyX n'est pas fixée à la date de signature. Elle sera établie ultérieurement sur la base d'une évaluation formelle du projet (avancement technique, traction, audit financier), d'un commun accord entre les parties, avant toute éventuelle conversion de l'apport en instrument de capital.");
+  clause('4', 'Accord de conversion distinct', "Toute conversion de l'apport en parts sociales, actions ou tout autre instrument financier fera l'objet d'un accord écrit et signé séparément (pacte d'actionnaires, bulletin de souscription ou équivalent), une fois la valorisation établie.");
+  clause('5', 'Confidentialité', "Les informations contenues dans le présent document sont strictement confidentielles. Toute divulgation à un tiers sans accord écrit préalable des deux parties est interdite.");
+  clause('6', 'Loi applicable', "Le présent document est soumis au droit en vigueur dans la juridiction du siège social de Biliwinx. Tout différend sera réglé à l'amiable entre les parties avant tout recours contentieux.");
+
+  sectionTitle('06', 'SIGNATURES DES PARTIES');
+  paragraph("Les soussignés reconnaissent avoir lu, compris et accepté l'ensemble des termes du présent document.", { size: 9, color: DARKGREY, after: 5 });
+  twoColStack('', '',
+    [
+      { label: 'Nom', value: data.repNom },
+      { label: 'Qualité', value: data.repQualiteSign },
+      { label: 'Lieu / date', value: data.repLieuDate },
+    ],
+    [
+      { label: 'Nom', value: data.invNom },
+      { label: 'Qualité', value: data.invQualite || 'Investisseur' },
+      { label: 'Lieu / date', value: data.invLieuDate },
+    ]
+  );
+  signatureBoxes('Pour Biliwinx', "Pour l'investisseur");
+
+  paragraph("Document confidentiel — Biliwinx / GoFolyX. Toute reproduction ou divulgation sans accord écrit est interdite. Ce document ne constitue pas une offre publique de titres financiers.", { italic: true, size: 7.2, color: DARKGREY, after: 0 });
+
+  drawFooter();
+  return doc;
+}
+
+
+function generatePDF(){
+  const moyenEl = document.querySelector('input[name=moyen]:checked');
+  const data = {
+    repNom:val('repNom'), repQualite:val('repQualite'), repQualiteSign:val('repQualiteSign'),
+    invNom:val('invNom'), invAdresse:val('invAdresse'),
+    repNomFamille:val('repNomFamille'), invNomFamille:val('invNomFamille'),
+    repPrenom:val('repPrenom'), invPrenom:val('invPrenom'),
+    repLieuNaissance:val('repLieuNaissance'), invLieuNaissance:val('invLieuNaissance'),
+    repNationalite:val('repNationalite'), invNationalite:val('invNationalite'),
+    repPieceType:val('repPieceType'), invPieceType:val('invPieceType'),
+    repPieceNum:val('repPieceNum'), invPieceNum:val('invPieceNum'),
+    repPieceDate:val('repPieceDate'), invPieceDate:val('invPieceDate'),
+    repTel:val('repTel'), invTel:val('invTel'),
+    repEmail:val('repEmail'), invEmail:val('invEmail'),
+    repAdresse:val('repAdresse'), invAdresseRes:val('invAdresseRes'),
+    repUrgenceNom:val('repUrgenceNom'), repUrgenceLien:val('repUrgenceLien'), repUrgenceTel:val('repUrgenceTel'),
+    invUrgenceNom:val('invUrgenceNom'), invUrgenceLien:val('invUrgenceLien'), invUrgenceTel:val('invUrgenceTel'),
+    montant:val('montant'), dateVersement:val('dateVersement'), moyenPaiement: moyenEl?moyenEl.value:'', reference:val('reference'),
+    repLieuDate:val('repLieuDate'), invLieuDate:val('invLieuDate'), invQualite:val('invQualite'),
+  };
+  const doc = makePDF(data);
+  const safeName = (data.invNom || 'investisseur').replace(/[^a-z0-9]+/gi,'_');
+  doc.save(`Biliwinx_GoFolyX_Attestation_${safeName}.pdf`);
+}
+
+showStep(0);
+</script>
+</body>
+</html>
