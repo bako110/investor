@@ -472,6 +472,15 @@ document.getElementById('btnNext').addEventListener('click', ()=>{
 });
 document.getElementById('btnBack').addEventListener('click', ()=> showStep(Math.max(0,current-1)));
 
+// ---------------- BILIWINX LEGAL INFO (fixed, from official CNSS / RCCM registration) ----------------
+const legalInfo = {
+  rccm: 'BF-OUA-01-2026-B13-13547',
+  cnss: '1505288B',
+  formeJuridique: 'Sociétés commerciales',
+  secteurActivite: 'Sces rendus-collectivités et aux ménages',
+  adressePostale: '01 BP 1826 Ouaga 01',
+};
+
 // ---------------- DEFAULTS (Biliwinx side, editable) ----------------
 const defaults = {
   repNom:'Robert Bako', repQualite:'Fondateur et Directeur Général', repQualiteSign:'Fondateur et Directeur Général',
@@ -610,6 +619,12 @@ function makePDF(data){
     y += 7;
   }
 
+  function maskId(num) {
+    const s = (num || '').trim();
+    if (s.length <= 4) return s ? '•'.repeat(s.length) : '';
+    return s.slice(0, 3) + '•'.repeat(Math.max(0, s.length - 6)) + s.slice(-3);
+  }
+
   function clause(num, title, body) {
     const badgeR = 3.3;
     const lines = wrapText(body, CONTENT_W - (badgeR * 2 + 4), 9, false);
@@ -677,14 +692,28 @@ function makePDF(data){
     ]
   );
 
-  sectionTitle('02', "INFORMATIONS D'IDENTIFICATION COMPLÉMENTAIRES");
-  paragraph("À renseigner pour chaque partie, à titre de justificatif d'identité en cas de besoin (due diligence, litige, ou demande d'une autorité compétente).", { size: 8.5, color: DARKGREY, after: 4 });
+  sectionTitle('02', 'IDENTIFICATION LÉGALE DE LA SOCIÉTÉ');
+  paragraph("Biliwinx est une société légalement enregistrée auprès des autorités compétentes du Burkina Faso.", { size: 8.5, color: DARKGREY, after: 4 });
+  twoColStack('', '',
+    [
+      { label: 'N° RCCM', value: data.rccm },
+      { label: 'Forme juridique', value: data.formeJuridique },
+      { label: "Secteur d'activités", value: data.secteurActivite },
+    ],
+    [
+      { label: 'N° immatriculation CNSS', value: data.cnss },
+      { label: 'Adresse postale', value: data.adressePostale },
+    ]
+  );
+
+  sectionTitle('03', "INFORMATIONS D'IDENTIFICATION COMPLÉMENTAIRES");
+  paragraph("À renseigner pour chaque partie, à titre de justificatif d'identité en cas de besoin (due diligence, litige, ou demande d'une autorité compétente). Les numéros de pièce sont partiellement masqués dans ce document pour la protection des données personnelles.", { size: 8.5, color: DARKGREY, after: 4 });
   twoColStack('REPRÉSENTANT — BILIWINX', 'INVESTISSEUR',
     [
       { label: 'Nom', value: data.repNomFamille },
       { label: 'Prénom(s)', value: data.repPrenom },
       { label: 'Nationalité', value: data.repNationalite },
-      { label: "Pièce d'identité", value: `${data.repPieceType || ''} ${data.repPieceNum || ''}`.trim() },
+      { label: "Pièce d'identité", value: `${data.repPieceType || ''} ${maskId(data.repPieceNum)}`.trim() },
       { label: 'Téléphone', value: data.repTel },
       { label: 'E-mail', value: data.repEmail },
       { label: 'Adresse de résidence', value: data.repAdresse },
@@ -693,7 +722,7 @@ function makePDF(data){
       { label: 'Nom', value: data.invNomFamille },
       { label: 'Prénom(s)', value: data.invPrenom },
       { label: 'Nationalité', value: data.invNationalite },
-      { label: "Pièce d'identité", value: `${data.invPieceType || ''} ${data.invPieceNum || ''}`.trim() },
+      { label: "Pièce d'identité", value: `${data.invPieceType || ''} ${maskId(data.invPieceNum)}`.trim() },
       { label: 'Téléphone', value: data.invTel },
       { label: 'E-mail', value: data.invEmail },
       { label: 'Adresse de résidence', value: data.invAdresseRes },
@@ -701,7 +730,7 @@ function makePDF(data){
     { valueSize: 9.5 }
   );
 
-  sectionTitle("03", "CONTACT D'URGENCE");
+  sectionTitle("04", "CONTACT D'URGENCE");
   paragraph("Personne à contacter en cas d'impossibilité de joindre l'une des parties.", { size: 8.5, color: DARKGREY, after: 4 });
   twoColStack('BILIWINX', 'INVESTISSEUR',
     [
@@ -716,7 +745,7 @@ function makePDF(data){
     ]
   );
 
-  sectionTitle('04', "DÉTAIL DE L'APPORT");
+  sectionTitle('05', "DÉTAIL DE L'APPORT");
   twoColStack('', '',
     [{ label: "Montant de l'apport", value: (data.montant ? data.montant + ' FCFA' : '—') }],
     [{ label: 'Date de versement', value: data.dateVersement }],
@@ -727,7 +756,7 @@ function makePDF(data){
     [{ label: 'Référence / justificatif', value: data.reference }]
   );
 
-  sectionTitle('05', 'TERMES & CONDITIONS');
+  sectionTitle('06', 'TERMES & CONDITIONS');
   clause('1', "Nature de l'apport", "Le présent versement constitue un apport financier destiné au financement du développement et de l'exploitation du projet GoFolyX. Il n'a pas la nature d'un prêt et ne porte pas intérêt, sauf accord contraire signé séparément par les parties.");
   clause('2', "Absence de détention d'action", "Le présent document ne confère à l'apporteur aucune part sociale, action, droit de vote ou droit de gouvernance au sein de Biliwinx. Aucune conversion en capital n'est automatique ni garantie du seul fait de cet apport.");
   clause('3', 'Valorisation à déterminer', "La valorisation de Biliwinx et du projet GoFolyX n'est pas fixée à la date de signature. Elle sera établie ultérieurement sur la base d'une évaluation formelle du projet (avancement technique, traction, audit financier), d'un commun accord entre les parties, avant toute éventuelle conversion de l'apport en instrument de capital.");
@@ -735,7 +764,7 @@ function makePDF(data){
   clause('5', 'Confidentialité', "Les informations contenues dans le présent document sont strictement confidentielles. Toute divulgation à un tiers sans accord écrit préalable des deux parties est interdite.");
   clause('6', 'Loi applicable', "Le présent document est soumis au droit en vigueur dans la juridiction du siège social de Biliwinx. Tout différend sera réglé à l'amiable entre les parties avant tout recours contentieux.");
 
-  sectionTitle('06', 'SIGNATURES DES PARTIES');
+  sectionTitle('07', 'SIGNATURES DES PARTIES');
   paragraph("Les soussignés reconnaissent avoir lu, compris et accepté l'ensemble des termes du présent document.", { size: 9, color: DARKGREY, after: 5 });
   twoColStack('', '',
     [
@@ -777,6 +806,7 @@ function generatePDF(){
     invUrgenceNom:val('invUrgenceNom'), invUrgenceLien:val('invUrgenceLien'), invUrgenceTel:val('invUrgenceTel'),
     montant:val('montant'), dateVersement:val('dateVersement'), moyenPaiement: moyenEl?moyenEl.value:'', reference:val('reference'),
     repLieuDate:val('repLieuDate'), invLieuDate:val('invLieuDate'), invQualite:val('invQualite'),
+    ...legalInfo,
   };
   const doc = makePDF(data);
   const safeName = (data.invNom || 'investisseur').replace(/[^a-z0-9]+/gi,'_');
